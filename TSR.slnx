@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="TSR.ApiService/TSR.ApiService.csproj" />
+  <Project Path="TSR.AppHost/TSR.AppHost.csproj" />
+  <Project Path="TSR.ServiceDefaults/TSR.ServiceDefaults.csproj" />
+  <Project Path="TSR.Web/TSR.Web.csproj" />
+  <Project Path="TSR.Worker/TSR.Worker.csproj" Id="55385245-b977-47c4-97b9-29e5762ad9bd" />
+</Solution>
