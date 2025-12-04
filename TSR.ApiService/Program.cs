@@ -1,3 +1,6 @@
+using System.Text.Json;
+using TSR.ApiService.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire client integrations.
@@ -22,6 +25,21 @@ if (app.Environment.IsDevelopment())
 string[] summaries = ["Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"];
 
 app.MapGet("/", () => "API service is running. Navigate to /weatherforecast to see sample data.");
+
+// /postcode/2914
+app.MapGet("/postcode/{code}", async (string code, HttpResponse response) =>
+{
+    string jsonContent = File.ReadAllText("postcodes.json");
+    if (!string.IsNullOrWhiteSpace(jsonContent) && !string.IsNullOrWhiteSpace(code))
+    {
+        AustralianPostcode[] postcodes = JsonSerializer.Deserialize<AustralianPostcode[]>(jsonContent) ?? Array.Empty<AustralianPostcode>();
+        var postcode = postcodes.Where(p => p.Postcode == code).First();
+        return Results.Json(postcode);
+    }
+    
+    return Results.Json("");
+});
+
 
 app.MapGet("/weatherforecast", () =>
 {

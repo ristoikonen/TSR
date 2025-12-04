@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Net;
 using TSR.Worker.Models;
 using TSR.Worker.Services;
@@ -17,29 +18,29 @@ namespace TSR.Worker
                         
             base.StartAsync(cancellationToken);
             
-            HttpGenericClient<AustralianPostcode[]> httpGenericClient = new HttpGenericClient<AustralianPostcode[]>();
-            var codes = httpGenericClient.GetAsync(@"https://www.matthewproctor.com/Content/postcodes/australian_postcodes.json", "www.matthewproctor.com");
 
 
             return Task.CompletedTask;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task<AustralianPostcode[]> ExecuteAsync(CancellationToken stoppingToken)
         {
             Console.WriteLine($"From Worker: Executing");
 
             while (!stoppingToken.IsCancellationRequested)
             {
-
-                //var result = await client.GetAsync("https://stackoverflow.com/ristoikonen");
-
-
                 if (logger.IsEnabled(LogLevel.Information))
                 {
                     logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                 }
-                await Task.Delay(1000, stoppingToken);
+
+                //var result = await client.GetAsync("https://stackoverflow.com/ristoikonen");
+                HttpGenericClient<AustralianPostcode[]> httpGenericClient = new HttpGenericClient<AustralianPostcode[]>();
+                var codes = await httpGenericClient.PostAsyncParams(@"https://www.matthewproctor.com/Content/postcodes/australian_postcodes.json", null);
+                return codes ?? Array.Empty<AustralianPostcode>();
+                //await Task.Delay(1000, stoppingToken);
             }
+            return Array.Empty<AustralianPostcode>();
         }
 
         public override Task StopAsync(CancellationToken cancellationToken)

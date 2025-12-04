@@ -1,7 +1,85 @@
 ﻿@page "/"
+@using System.Net.Http.Json
+@using TSR.Web.Models;
+@inject IHttpClientFactory HttpClientFactory
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Postcode lookup</h1>
 
-Welcome to your new app.
+<div class="mb-3">
+    <input class="form-control" @bind="postcode" placeholder="Enter postcode, e.g., 2914" />
+</div>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="Lookup" disabled="@loading">Lookup</button>
+    <button class="btn btn-secondary ms-2" @onclick="Clear">Clear</button>
+</div>
+
+@if (loading)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!string.IsNullOrEmpty(error))
+{
+    <div class="alert alert-danger">@error</div>
+}
+else if (result != null)
+{
+    <table class="table">
+        <tbody>
+            <tr><th>Postcode</th><td>@result.Postcode</td></tr>
+            <tr><th>Locality</th><td>@result.Locality</td></tr>
+            <tr><th>State</th><td>@result.State</td></tr>
+            <tr><th>Latitude</th><td>@result.Latitude</td></tr>
+            <tr><th>Longitude</th><td>@result.Longitude</td></tr>
+        </tbody>
+    </table>
+}
+
+@code {
+    private string postcode = string.Empty;
+    private bool loading;
+    private string? error;
+    private AustralianPostcode? result;
+
+    private async Task Lookup()
+    {
+        error = null;
+        result = null;
+        if (string.IsNullOrWhiteSpace(postcode))
+        {
+            error = "Please enter a postcode.";
+            return;
+        }
+
+        loading = true;
+        try
+        {
+            var client = HttpClientFactory.CreateClient();
+            client.BaseAddress = new Uri("https://localhost:7452");
+            result = await client.GetFromJsonAsync<AustralianPostcode>($"/postcode/{Uri.EscapeDataString(postcode)}");
+            if (result == null)
+            {
+                error = "No data found for the given postcode.";
+            }
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void Clear()
+    {
+        postcode = string.Empty;
+        result = null;
+        error = null;
+    }
+
+
+}

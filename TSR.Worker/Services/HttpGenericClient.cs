@@ -11,6 +11,44 @@ namespace TSR.Worker.Services
 {
     public class HttpGenericClient<T>
     {
+        //public async Task<T?> GetData()
+        //{
+        //    string url = "https://example.com"; // Replace with your target URL
+
+        //    try
+        //    {
+        //        // Use HttpClient with a using declaration to ensure disposal
+        //        using HttpClient client = new HttpClient();
+
+        //        // Optional: Set a timeout
+        //        client.Timeout = TimeSpan.FromSeconds(10);
+
+        //        // Optional: Set a custom User-Agent header
+        //        client.DefaultRequestHeaders.UserAgent.ParseAdd("MyApp/1.0");
+
+        //        // Send GET request and read response as string
+        //        var html = await client.GetFromJsonAsync<T>(url);
+
+        //        Console.WriteLine("Page content received:");
+        //        Console.WriteLine(html);
+        //    }
+        //    catch (HttpRequestException ex)
+        //    {
+        //        Console.WriteLine($"HTTP error: {ex.Message}");
+        //    }
+        //    catch (TaskCanceledException)
+        //    {
+        //        Console.WriteLine("Request timed out.");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine($"Unexpected error: {ex.Message}");
+        //    }
+        //    return default T;
+        //}
+
+
+
         public async Task<JsonDocument?> GetAsync(string requestUri, string HostEndpoint = "", Dictionary<string, string>? contentsParams = null, string token = "")
         {
             try
@@ -92,7 +130,7 @@ namespace TSR.Worker.Services
         }
 
 
-        public async Task<T?> PostAsync(string uri, Dictionary<string, string> contentsParams, string token = "", string HostEndpoint = "")
+        public async Task<T?> PostAsyncParams(string uri, Dictionary<string, string> contentsParams, string token = "", string HostEndpoint = "")
         {
             try
             {
