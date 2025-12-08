@@ -1,8 +1,11 @@
-﻿@page "/weather"
+﻿@rendermode InteractiveAuto
+
+@page "/weather"
 @attribute [StreamRendering(true)]
 @attribute [OutputCache(Duration = 5)]
 
 @inject WeatherApiClient WeatherApi
+@inject HashApi HashApiInstance
 
 <PageTitle>Weather</PageTitle>
 
@@ -16,6 +19,149 @@
 }
 else
 {
+    
+    <h3>Upload and Hash Image Bytes</h3>
+
+
+    <InputFile OnChange="LoadImageBytes2" multiple />
+    @if (imageDataUrl2 != null)
+    {
+        <p>
+            **File Details:**
+            <br> Name: @fileName2
+            <br> Size: @fileSize2 bytes
+            <br> Content Type: @contentType2
+        </p>
+        <img src="@imageDataUrl2" style="max-width: 300px;" />
+
+        <p>
+            <strong>Hash of Image Bytes: </strong>
+            @hashedImage2.ToString();
+            @Compare();
+        </p>
+    }
+
+    <br />
+
+    <h3>Upload and Hash Image Bytes</h3>
+
+    <InputFile OnChange="LoadImageBytes" multiple />
+    @if (imageDataUrl != null)
+    {
+        <p>
+            **File Details:**
+            <br> Name: @fileName
+            <br> Size: @fileSize bytes
+            <br> Content Type: @contentType
+        </p>
+        <img src="@imageDataUrl" style="max-width: 300px;" />
+
+        <p>
+            <strong>Hash of Image Bytes: </strong>
+            @hashedImage.ToString();
+        </p>
+    }
+
+
+    
+    @if (imageDataUrl2 != null && imageDataUrl != null)
+    {
+
+        <p>
+            <strong>Hash of Image 1 and Image 2: </strong>
+            @hashedImage.ToString();
+            @hashedImage2.ToString();
+        </p>
+
+        
+        <p>
+            <strong>Diff by Image 1 minus Image 2: </strong>
+             @((hashedImage - hashedImage2).ToString())
+        </p>
+
+        <p>
+            <strong>Diff by Image 2 minus Image 1: </strong>
+            @((hashedImage2 - hashedImage).ToString())
+        </p>
+
+        <p>
+            <strong>Diff by Image 2 minus Image 1: </strong>
+            @(((hashedImage2 *100) / hashedImage).ToString())
+        </p>
+
+        <p>
+            <strong>Diff prc smaller by Image  minus Image 2: </strong>
+            @{
+                double doubleValue = hashedImage ?? 0.0; 
+                double doubleValue2 = hashedImage2 ?? 0.0;
+
+                if (doubleValue < doubleValue2)
+                    prc = (doubleValue / doubleValue2).ToString("P3");
+                else
+                    prc = (doubleValue2  / doubleValue).ToString("P3");
+            }
+            @prc
+        </p>
+
+
+        <p>
+            <strong>Diff by Image  minus Image 2: </strong>
+            @{
+                double doubleValue22 = hashedImage ?? 0.0;
+                double doubleValue222 = hashedImage2 ?? 0.0;
+                prc2 = (doubleValue222 / doubleValue22).ToString("P3");
+            }
+            @prc2
+        </p>
+
+
+         <p>
+            <strong>Diff by Hash: </strong>
+
+            @prc3
+        </p>
+
+
+        <p>
+            <strong>Precentage diff: </strong>
+
+            
+
+            @{
+                // If ImageDiffPrc is a synchronous method:
+                ImageDiffPrc(hashedImage ?? 0, hashedImage2 ?? 0);
+            }
+
+        </p>
+
+        <p>
+            <strong>ImageDiff of Image 1 and Image 2: </strong>
+            @{
+                ImageDiff(hashedImage ?? 0, hashedImage2 ?? 0 );
+             }
+        </p>
+
+        <p>
+            <strong>Diff by Image 1 minus Image 2: @diff</strong>
+            @{
+                diff = string.Empty;
+                var his1 = (@hashedImage?.ToString()?.ToCharArray()) ?? Array.Empty<char>(); 
+                var his2 = (@hashedImage2.ToString()?.ToCharArray()) ?? Array.Empty<char>();
+                for (int i = 0; i < his1.Length; i++)
+                {
+                    if (his1[i] > his2[i]) 
+                        diff += (((ulong)his1[i]) - ((ulong)his2[i])).ToString();
+                    if (his1[i] < his2[i])  
+                        //diff += "-1";
+                        diff += (((ulong)his2[i]) - ((ulong)his1[i])).ToString();
+                    if (his1[i] == his2[i]) diff += "0";
+                }
+            }
+            Diff = @diff
+        </p>
+    }
+
+
     <table class="table">
         <thead>
             <tr>
@@ -40,10 +186,184 @@ else
 }
 
 @code {
+
+    // accept="image/*"
+
     private WeatherForecast[]? forecasts;
+
+    private string? imageDataUrl;
+    private string? fileName;
+    private long fileSize;
+    private string? contentType;
+    private byte[]? imageBytes;
+    private ulong? hashedImage;
+
+
+
+    private string? imageDataUrl2;
+    private string? fileName2;
+    private long fileSize2;
+    private string? contentType2;
+    private byte[]? imageBytes2;
+    private ulong? hashedImage2;
+
+
+    private string prc = string.Empty;
+    private string prc2 = string.Empty;
+    private string prc3 = string.Empty;
+    private string diff = string.Empty;
+
+    private string? xfileName;
+
+    // private async Task LoadImage(InputFileChangeEventArgs e)
+    // {
+    //     var file = e.File;
+    //     var xfileName = file.Name;
+
+
+    // }
+
+    private  string ImageDiffPrc(ulong img1, ulong img2)
+    {
+        /*
+        *             @* If ImageDiffPrc is asynchronous, use await inside an async context *@
+        @code {
+                private int? imageDiff;
+
+    protected override async Task OnInitializedAsync()
+    {
+        imageDiff = await ImageDiffPrc(hashedImage ?? 0, hashedImage2 ?? 0);
+        }
+    }
+         * 
+         */
+
+    var prc = string.Empty;
+
+
+    if (img1 > img2)
+    {
+    var prcnumber = ((img2 * 100) / img1);
+            prc = ((double)prcnumber).ToString("P3");
+        }
+    else
+        {
+            var prcnumber = ((img1 * 100) / img2);
+            prc = ((double)prcnumber).ToString("P3");
+        }
+
+        return prc;
+    }
+
+
+    private string ImageDiff(ulong img1, ulong img2)
+    {
+
+
+        var diffs = string.Empty;
+        var prc = "prc";
+
+        if (img1 > img2)
+        {
+            var prcnumber = ((img2 * 100) / img1);
+            prc = ((double)prcnumber).ToString("P3");
+                }
+                else
+                {
+            var prcnumber = ((img1 * 100) / img2);
+            prc = ((double)prcnumber).ToString("P3");
+        }
+
+        var his1 = (img1.ToString()?.ToCharArray()) ?? Array.Empty<char>();
+        var his2 = (img2.ToString()?.ToCharArray()) ?? Array.Empty<char>();
+
+        if (his1.Length == his2.Length)
+        {
+            for (int i = 0; i < his1.Length; i++)
+            {
+                if (his1[i] > his2[i]) diff += "1";
+                if (his1[i] < his2[i]) diff += "-1";
+                if (his1[i] == his2[i]) diff += "0";
+            }
+        }
+
+        return diffs + " " + prc;
+    }
+
+
+    private async Task Compare()
+    {
+            prc3 = await HashApiInstance.CompareHashesPercent(hashedImage ?? 0, hashedImage2 ?? 0, "");
+    }
+    
+
+    private async Task LoadImageBytes(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        fileName = file.Name;
+        fileSize = file.Size;
+        contentType = file.ContentType;
+
+        // Note: OpenReadStream has a default max size of 500 KB. For larger files, you must specify a larger size (e.g., long.MaxValue or a specific limit).        // Be cautious about reading very large files entirely into memory in Blazor Server apps.
+        var maxAllowedSize = 10 * 1024 * 1024; // 10 MB
+
+        try
+        {
+            using (var stream = file.OpenReadStream(maxAllowedSize))
+            using (var memoryStream = new MemoryStream())
+            {
+                await stream.CopyToAsync(memoryStream);
+                imageBytes = memoryStream.ToArray();
+
+                hashedImage = await HashApiInstance.GetHash(imageBytes);
+
+                // Convert bytes to a Base64 Data URL for immediate display in the browser
+                imageDataUrl = $"data:{contentType};base64,{Convert.ToBase64String(imageBytes)}";
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle exceptions (e.g., file too large)
+            Console.WriteLine($"Error reading file: {ex.Message}");
+            imageDataUrl = null;
+        }
+    }
+
+    private async Task LoadImageBytes2(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        fileName2 = file.Name;
+        fileSize2 = file.Size;
+        contentType2 = file.ContentType;
+
+        // Note: OpenReadStream has a default max size of 500 KB. For larger files, you must specify a larger size (e.g., long.MaxValue or a specific limit).        // Be cautious about reading very large files entirely into memory in Blazor Server apps.
+        var maxAllowedSize = 10 * 1024 * 1024; // 10 MB
+
+        try
+        {
+            using (var stream = file.OpenReadStream(maxAllowedSize))
+            using (var memoryStream = new MemoryStream())
+            {
+                await stream.CopyToAsync(memoryStream);
+                imageBytes = memoryStream.ToArray();
+
+                hashedImage2 = await HashApiInstance.GetHash(imageBytes);
+
+                // Convert bytes to a Base64 Data URL for immediate display in the browser
+                imageDataUrl2 = $"data:{contentType};base64,{Convert.ToBase64String(imageBytes)}";
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle exceptions (e.g., file too large)
+            Console.WriteLine($"Error reading file: {ex.Message}");
+            imageDataUrl = null;
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
         forecasts = await WeatherApi.GetWeatherAsync();
     }
+
 }
