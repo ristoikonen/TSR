@@ -1,3 +1,4 @@
+using Microsoft.FluentUI.AspNetCore.Components;
 using TSR.Web;
 using TSR.Web.Components;
 
@@ -11,6 +12,13 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddOutputCache();
+
+// Register FluentUI services
+builder.Services.AddFluentUIComponents();
+
+// Optional: Explicitly register LibraryConfiguration if needed
+builder.Services.AddScoped<Microsoft.FluentUI.AspNetCore.Components.LibraryConfiguration>();
+
 
 builder.Services.AddScoped<HashApi>();
 

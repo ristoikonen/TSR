@@ -4,6 +4,7 @@ using CoenM.ImageHash;
 using CoenM.ImageHash.HashAlgorithms;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using TSR.ApiService;
 
 public class HashApi()
 {
@@ -42,6 +43,22 @@ public class HashApi()
     public async Task<string> CompareHashesPercent(ulong data, ulong data2, string format)
     {
         return CompareHash.Similarity(data, data2).ToString(format);
+    }
+}
+
+
+
+public class OllamaApi()
+{
+
+    public async Task CreateVector(byte[] data, CancellationToken cancellationToken = default)
+    {
+
+        ApiService.ImageVectorGenerator imageVectorGenerator = new ApiService.ImageVectorGenerator();
+
+        var floararray = await imageVectorGenerator.GenerateVectorFromImage(data);
+
+        return;
     }
 }
 
