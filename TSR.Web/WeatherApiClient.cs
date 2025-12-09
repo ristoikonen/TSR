@@ -5,62 +5,8 @@ using CoenM.ImageHash.HashAlgorithms;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using TSR.ApiService;
+using TSR.ApiService.Services;
 
-public class HashApi()
-{
-
-    //perceptual hash 
-    public async Task<ulong> GetHash(byte[] data, CancellationToken cancellationToken = default)
-    {
-        ulong imageHash = 0;
-        // Choose a hashing algorithm
-        var hashAlgorithm = new PerceptualHash(); // Or DifferenceHash, AverageHash
-        
-
-        // Load the image using ImageSharp
-        using var image = Image.Load<Rgba32>(data);
-
-        if (image is not null)
-        {
-            imageHash = hashAlgorithm.Hash(image);
-        }
-
-        
-        return imageHash;
-    }
-
-
-    public async Task<double> CompareHashes(byte[] data, byte[] data2)
-    {
-        return CompareHash.Similarity(data, data2);
-    }
-
-    public async Task<double> CompareHashes(ulong data, ulong data2)
-    {
-        return CompareHash.Similarity(data, data2);
-    }
-
-    public async Task<string> CompareHashesPercent(ulong data, ulong data2, string format)
-    {
-        return CompareHash.Similarity(data, data2).ToString(format);
-    }
-}
-
-
-
-public class OllamaApi()
-{
-
-    public async Task CreateVector(byte[] data, CancellationToken cancellationToken = default)
-    {
-
-        ApiService.ImageVectorGenerator imageVectorGenerator = new ApiService.ImageVectorGenerator();
-
-        var floararray = await imageVectorGenerator.GenerateVectorFromImage(data);
-
-        return;
-    }
-}
 
 public class WeatherApiClient(HttpClient httpClient)
 {

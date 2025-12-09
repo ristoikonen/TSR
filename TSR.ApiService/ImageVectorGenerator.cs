@@ -3,6 +3,7 @@ using Microsoft.SemanticKernel.Connectors.Ollama;
 //using Microsoft.SemanticKernel.Connectors.Ollama.Client;
 using Microsoft.SemanticKernel.Embeddings;
 using OllamaSharp;
+using FaissNet;
 using System.IO;
 using System.Text;
 
@@ -33,11 +34,21 @@ public class ImageVectorGenerator
         string multimodalPrompt = $"Here is an image: data:image/jpeg;base64,{base64Image} . Generate the most representative embedding vector for this image.";
 
         // 5. Generate the embeddings
-        var embeddings = await embeddingService.GenerateEmbeddingsAsync([multimodalPrompt]);
+        var embeddings = await embeddingService.GenerateEmbeddingsAsync(new[] { multimodalPrompt });
 
-        if (embeddings.Count > 0)
+        if (embeddings is not null && embeddings.Count > 0)
         {
-            return embeddings[0].ToArray();
+            // Convert IList<ReadOnlyMemory<float>> to float[] for FaissNet.Index.AddFlat
+            var firstEmbeddingMemory = embeddings[0];
+            float[] firstEmbedding = firstEmbeddingMemory.ToArray();
+                        
+            FaissNet.Index idx = FaissNet.Index.CreateDefault(firstEmbedding.Length, FaissNet.MetricType.METRIC_INNER_PRODUCT);
+            /*
+            // If you want to add all embeddings, flatten them into a single float[] array. Otherwise, just add the first embedding
+            idx.AddFlat(1, firstEmbedding);
+            var tx = idx.SearchFlat(1, firstEmbedding, 1); //, out long[] labels, out float[] distances);
+            */
+            return firstEmbedding;
         }
 
         return Array.Empty<float>();

@@ -20,7 +20,8 @@ builder.Services.AddFluentUIComponents();
 builder.Services.AddScoped<Microsoft.FluentUI.AspNetCore.Components.LibraryConfiguration>();
 
 
-builder.Services.AddScoped<HashApi>();
+builder.Services.AddScoped<HashApiClient>();
+builder.Services.AddScoped<OllamaApiClient>();
 
 builder.Services.AddHttpClient<WeatherApiClient>(client =>
     {

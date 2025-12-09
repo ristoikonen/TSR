@@ -1,5 +1,11 @@
 using System.Text.Json;
 using TSR.ApiService.Models;
+using Microsoft.Extensions.VectorData;
+using Microsoft.SemanticKernel.Connectors.InMemory;
+
+var vectorStore = new InMemoryVectorStore();
+// https://learn.microsoft.com/en-us/semantic-kernel/concepts/vector-store-connectors/vector-search?pivots=programming-language-csharp
+//https://learn.microsoft.com/en-us/semantic-kernel/concepts/vector-store-connectors/embedding-generation?source=recommendations&pivots=programming-language-csharp
 
 var builder = WebApplication.CreateBuilder(args);
 
