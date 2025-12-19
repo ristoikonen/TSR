@@ -86,16 +86,28 @@ public static class ImageCompareHash
 
     public static double Similarity(float[] hash1, float[] hash2)
     {
-        if (hash1 == null)
+        if (hash1 == null) throw new ArgumentNullException(nameof(hash1));
+        if (hash2 == null) throw new ArgumentNullException(nameof(hash2));
+        if (hash1.Length != hash2.Length) throw new ArgumentException("Hash arrays must have the same length.", nameof(hash2));
+
+        int len = hash1.Length;
+        if (len == 0) return 100.0;
+
+        double dot = 0.0, normA = 0.0, normB = 0.0;
+        for (int i = 0; i < len; i++)
         {
-            throw new ArgumentNullException(nameof(hash1));
+            double a = hash1[i];
+            double b = hash2[i];
+            dot += a * b;
+            normA += a * a;
+            normB += b * b;
         }
 
-        if (hash2 == null)
-        {
-            throw new ArgumentNullException(nameof(hash2));
-        }
-        return Similarity(hash1, hash2);
+        if (normA == 0.0 || normB == 0.0) return 0.0;
+
+        double cos = dot / (Math.Sqrt(normA) * Math.Sqrt(normB));
+        cos = Math.Max(-1.0, Math.Min(1.0, cos)); // clamp
+        return ((cos + 1.0) / 2.0) * 100.0; // scale to 0..100
     }
 
 

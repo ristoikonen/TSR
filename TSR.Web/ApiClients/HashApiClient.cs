@@ -4,7 +4,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using TSR.ApiService.Services;
 using SixLabors.ImageSharp;
 
-namespace TSR.Web;
+namespace TSR.Web.ApiClients;
 
 
 public class HashApiClient()
@@ -44,7 +44,8 @@ public class HashApiClient()
         {
             return null;
         }
-        return ImageCompareHash.Similarity(data, data2).ToString(format);
+        // format
+        return ImageCompareHash.Similarity(data, data2).ToString();
     }
 
 

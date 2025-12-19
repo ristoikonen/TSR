@@ -1,5 +1,6 @@
 using Microsoft.FluentUI.AspNetCore.Components;
 using TSR.Web;
+using TSR.Web.ApiClients;
 using TSR.Web.Components;
 
 var builder = WebApplication.CreateBuilder(args);

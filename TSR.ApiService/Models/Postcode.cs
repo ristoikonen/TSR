@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.Json.Serialization;
 
+
 namespace TSR.ApiService.Models
 {
+#pragma warning disable CS8618
     public class AustralianPostcode
     {
 
@@ -135,5 +138,6 @@ namespace TSR.ApiService.Models
             [JsonPropertyName("altitude")]
             public string Altitude { get; set; }
         }
-    }
+#pragma warning restore CS8618
+}
 

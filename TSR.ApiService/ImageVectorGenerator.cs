@@ -1,11 +1,15 @@
-﻿using Microsoft.SemanticKernel;
+﻿using FaissNet;
+using Microsoft.Extensions.VectorData;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Connectors.InMemory;
 using Microsoft.SemanticKernel.Connectors.Ollama;
 //using Microsoft.SemanticKernel.Connectors.Ollama.Client;
 using Microsoft.SemanticKernel.Embeddings;
 using OllamaSharp;
-using FaissNet;
+using System.Collections;
 using System.IO;
 using System.Text;
+using TSR.ApiService.Models;
 
 namespace TSR.ApiService;
 
@@ -13,10 +17,15 @@ namespace TSR.ApiService;
 public class ImageVectorGenerator
 {
     private const string OllamaEndpoint = "http://localhost:11434";
-    // NOTE: The model must be capable of generating embeddings AND handling image input.
     private const string EmbeddingModelName = "moondream";
+    private readonly InMemoryVectorStore vectorStore;
 
-    public async Task<float[]> GenerateVectorFromImage(byte[] imageBytes)
+    public ImageVectorGenerator()
+    {
+        vectorStore = new InMemoryVectorStore();
+    }
+
+    public async Task<float[]> GenerateVectorFromImage(byte[] imageBytes, string fileName)
     {
         // 1. Initialize the Ollama client
         var ollamaClient = new OllamaApiClient(
@@ -48,6 +57,18 @@ public class ImageVectorGenerator
             idx.AddFlat(1, firstEmbedding);
             var tx = idx.SearchFlat(1, firstEmbedding, 1); //, out long[] labels, out float[] distances);
             */
+   
+            var collection = vectorStore.GetCollection<string, TSRImage>("images");
+            await collection.EnsureCollectionExistsAsync();
+            TSRImage img = new TSRImage
+            {
+                FileName = fileName,
+                ImageEmbedding = firstEmbedding,
+            };
+            await collection.UpsertAsync(img);
+
+            
+
             return firstEmbedding;
         }
 

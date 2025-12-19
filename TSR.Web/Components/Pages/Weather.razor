@@ -1,6 +1,9 @@
 ﻿@rendermode InteractiveAuto
 
+@using TSR.Web.ApiClients;
+
 @page "/weather"
+
 @attribute [StreamRendering(true)]
 @attribute [OutputCache(Duration = 5)]
 
@@ -30,9 +33,9 @@
 }
 else
 {
-    
-    <h3>Upload and Hash Image Bytes and OLLAMA</h3>
 
+    
+    <h3>Upload and Hash Image Bytes</h3>
 
     <InputFile OnChange="LoadImageBytes" multiple />
     @if (imageDataUrl != null)
@@ -43,40 +46,45 @@ else
             <br> Size: @fileSize bytes
             <br> Content Type: @contentType
         </p>
-        <img src="@imageDataUrl2" style="max-width: 300px;" />
+        <img src="@imageDataUrl" style="max-width: 300px;" />
 
         <p>
             <strong>Hash of Image Bytes: </strong>
             @hashedImage.ToString();
-            @Compare();
-            @OllamaVectorise();
+
+            
         </p>
     }
-
     <br />
+    
+    <h3>Upload and Hash Image Bytes 2 </h3>
 
-    <h3>Upload and Hash Image Bytes</h3>
 
     <InputFile OnChange="LoadImageBytes2" multiple />
     @if (imageDataUrl2 != null)
     {
         <p>
             **File Details:**
-            <br> Name: @fileName
-            <br> Size: @fileSize bytes
-            <br> Content Type: @contentType
+            <br> Name: @fileName2
+            <br> Size: @fileSize2 bytes
+            <br> Content Type: @contentType2
         </p>
         <img src="@imageDataUrl2" style="max-width: 300px;" />
 
         <p>
             <strong>Hash of Image Bytes: </strong>
             @hashedImage2.ToString();
-            @OllamaVectorise();
-            @CompareImageHash()
+            @Compare();
+
+            
         </p>
     }
 
+    <br />
 
+    <button @onclick="CompareImageHash">Compare Images Hashes</button>
+
+    <br />
     
     @if (imageDataUrl2 != null && imageDataUrl != null)
     {
@@ -116,7 +124,6 @@ else
             }
             @prc
         </p>
-
 
         <p>
             <strong>Diff by Image  minus Image 2: </strong>
@@ -310,18 +317,21 @@ else
 
     private async Task CompareImageHash()
     {
+        await OllamaVectorise();
+        await OllamaVectorise2();
+
         prc4_coenm = await HashApiClient.CompareImagesHashes(imageFloats, imageFloats2, "P3") ?? string.Empty;
     }
 
     private async Task OllamaVectorise()
     {
-        var farr = await OllamaApiClient.CreateVector(imageBytes);
+        var farr = await OllamaApiClient.CreateVector(imageBytes, fileName);
         imageFloats = farr;
     }
 
     private async Task OllamaVectorise2()
     {
-        var farr2 = await OllamaApiClient.CreateVector(imageBytes2);
+        var farr2 = await OllamaApiClient.CreateVector(imageBytes2, fileName2);
         imageFloats2 = farr2;
     }
 
@@ -373,19 +383,18 @@ else
             using (var memoryStream = new MemoryStream())
             {
                 await stream.CopyToAsync(memoryStream);
-                imageBytes = memoryStream.ToArray();
 
-                hashedImage2 = await HashApiClient.GetHash(imageBytes);
-
+                imageBytes2 = memoryStream.ToArray();
+                hashedImage2 = await HashApiClient.GetHash(imageBytes2);
                 // Convert bytes to a Base64 Data URL for immediate display in the browser
-                imageDataUrl2 = $"data:{contentType};base64,{Convert.ToBase64String(imageBytes)}";
+                imageDataUrl2 = $"data:{contentType2};base64,{Convert.ToBase64String(imageBytes2)}";
             }
         }
         catch (Exception ex)
         {
             // Handle exceptions (e.g., file too large)
-            Console.WriteLine($"Error reading file: {ex.Message}");
-            imageDataUrl = null;
+            Console.WriteLine($"Error reading file (2): {ex.Message}");
+            imageDataUrl2 = null;
         }
     }
 
