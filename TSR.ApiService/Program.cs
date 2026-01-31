@@ -36,9 +36,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-string[] summaries = ["Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"];
-
-app.MapGet("/", () => "API service is running. Navigate to /weatherforecast to see sample data.");
+app.MapGet("/", () => "API service is running. use it by inserting Au postcode as parameter to  to /postcode/2300 to test postcode 2300  .");
 
 // /postcode/2914
 app.MapGet("/postcode/{code}", async (string code, HttpResponse response) =>
@@ -47,11 +45,25 @@ app.MapGet("/postcode/{code}", async (string code, HttpResponse response) =>
     if (!string.IsNullOrWhiteSpace(jsonContent) && !string.IsNullOrWhiteSpace(code))
     {
         AustralianPostcode[] postcodes = JsonSerializer.Deserialize<AustralianPostcode[]>(jsonContent) ?? Array.Empty<AustralianPostcode>();
-        var postcode = postcodes.Where(p => p.Postcode == code).First();
-        return Results.Json(postcode);
+        if (postcodes is null || postcodes is not AustralianPostcode[] || postcodes.Length < 1)
+        {
+            return Results.Json(null);
+        }
+
+        var postcode = postcodes.Where(p => p.Postcode == code).FirstOrDefault();
+        //TODO: ifs
+        string jsonString = JsonSerializer.Serialize(postcode, new JsonSerializerOptions { WriteIndented = true });
+        string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        //TODO: Add appFolderName
+        string fileName = code + "_" + Guid.NewGuid().ToString() + ".json";
+        string fullPath = Path.Combine(documentsPath, fileName);
+        //TODO: log this
+        File.WriteAllText(fullPath, jsonString);
+
+        return Results.Json(postcode ?? null);
     }
     
-    return Results.Json("");
+    return Results.Json(string.Empty);
 });
 
 app.MapGet("/vector", () =>
@@ -197,26 +209,8 @@ app.MapPost("/file2vector", async (Microsoft.AspNetCore.Http.HttpRequest request
 
 
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
-
 app.MapDefaultEndpoints();
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+
