@@ -1,4 +1,6 @@
-﻿namespace TSR.Web.ApiClients;
+﻿using TSR.ApiService.Services;
+
+namespace TSR.Web.ApiClients;
 
 public class OllamaApiClient()
 {
@@ -7,10 +9,9 @@ public class OllamaApiClient()
         float[]? farr = null;
         if (data is not null)
         {
-            ApiService.ImageVectorGenerator imageVectorGenerator = new ApiService.ImageVectorGenerator();
-
+            ImageVectorGenerator imageVectorGenerator = new ImageVectorGenerator();
             farr = await imageVectorGenerator.GenerateVectorFromImage(data, fileName);
-            Console.WriteLine(farr.Length);
+            // Console.WriteLine(farr.Length);
         }
         return farr;
     }

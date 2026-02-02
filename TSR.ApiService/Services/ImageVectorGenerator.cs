@@ -6,12 +6,15 @@ using Microsoft.SemanticKernel.Connectors.Ollama;
 //using Microsoft.SemanticKernel.Connectors.Ollama.Client;
 using Microsoft.SemanticKernel.Embeddings;
 using OllamaSharp;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using System.Collections;
 using System.IO;
 using System.Text;
 using TSR.ApiService.Models;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace TSR.ApiService;
+namespace TSR.ApiService.Services;
 
 
 public class ImageVectorGenerator
@@ -50,28 +53,30 @@ public class ImageVectorGenerator
             // Convert IList<ReadOnlyMemory<float>> to float[] for FaissNet.Index.AddFlat
             var firstEmbeddingMemory = embeddings[0];
             float[] firstEmbedding = firstEmbeddingMemory.ToArray();
-                        
+
+            // Add Faiss index for similarity search (future implementation in a Web client, possibly)
             FaissNet.Index idx = FaissNet.Index.CreateDefault(firstEmbedding.Length, FaissNet.MetricType.METRIC_INNER_PRODUCT);
+            
             /*
             // If you want to add all embeddings, flatten them into a single float[] array. Otherwise, just add the first embedding
             idx.AddFlat(1, firstEmbedding);
             var tx = idx.SearchFlat(1, firstEmbedding, 1); //, out long[] labels, out float[] distances);
             */
-   
-            var collection = vectorStore.GetCollection<string, TSRImage>("images");
+
+            var collection = vectorStore.GetCollection<string, TSRImageExif>("images");
             await collection.EnsureCollectionExistsAsync();
-            TSRImage img = new TSRImage
+            var exif_vector = ImageInfoReader.GetExifProfile(fileName);
+
+            TSRImageExif img = new TSRImageExif
             {
                 FileName = fileName,
                 ImageEmbedding = firstEmbedding,
-            };
+                ExifProfile = exif_vector,
+            }
+            ;
             await collection.UpsertAsync(img);
-
-            
-
             return firstEmbedding;
         }
-
         return Array.Empty<float>();
     }
 }
